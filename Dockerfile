@@ -10,6 +10,9 @@ RUN npm run build
 FROM node:20-slim
 WORKDIR /app
 
+# Security: Set environment to production
+ENV NODE_ENV=production
+
 # Copy root package.json for dependencies
 COPY package*.json ./
 RUN npm install --production
@@ -20,8 +23,10 @@ COPY server/ ./server/
 # Copy built frontend from Stage 1
 COPY --from=client-builder /app/client/dist ./client/dist
 
-# The backend will serve static files from client/dist in a real production setup
-# For this prototype, we'll use a simple environment variable to point to the static folder
+# Use the non-root 'node' user for security
+RUN chown -R node:node /app
+USER node
+
 ENV STATIC_PATH=/app/client/dist
 ENV PORT=5001
 

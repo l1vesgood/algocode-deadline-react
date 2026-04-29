@@ -120,22 +120,52 @@ body {
 .contest-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
-.contest-item {
+.contest-item-detailed {
+  padding: 1rem;
+  background-color: rgba(255, 255, 255, 0.02);
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s;
+}
+
+.contest-item-detailed.active {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.contest-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1rem;
-  background-color: rgba(255, 255, 255, 0.03);
-  border-radius: 0.5rem;
-  border: 1px solid transparent;
+  margin-bottom: 1rem;
 }
 
-.contest-item.completed {
-  border-color: rgba(34, 197, 94, 0.2);
-  background-color: rgba(34, 197, 94, 0.05);
+.problem-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.problem-box {
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 0.35rem;
+  background-color: var(--border-color);
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.problem-box.solved {
+  background-color: var(--success-color);
+  color: white;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.3);
 }
 
 .contest-title {
@@ -181,4 +211,104 @@ body {
   color: var(--danger-color);
   text-align: center;
   padding: 2rem;
+}
+
+/* Standings Table Styles */
+.standings-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.table-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.standings-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.standings-table th {
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.table-row {
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table-row:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.table-row.current-user {
+  background-color: rgba(56, 189, 248, 0.1);
+}
+
+.table-row.completed-row .name {
+  color: var(--success-color);
+}
+
+.standings-table td {
+  padding: 1rem 1.5rem;
+}
+
+.rank {
+  font-family: monospace;
+  color: var(--text-secondary);
+}
+
+.solved-count {
+  text-align: center;
+  font-family: monospace;
+}
+
+.progress-cell {
+  width: 150px;
+}
+
+.mini-progress-bg {
+  height: 6px;
+  background-color: var(--border-color);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.mini-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.btn-show-more {
+  width: 100%;
+  padding: 1rem;
+  background: none;
+  border: none;
+  color: var(--accent-color);
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.btn-show-more:hover {
+  background-color: rgba(56, 189, 248, 0.05);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
 }

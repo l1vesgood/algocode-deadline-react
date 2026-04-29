@@ -2,10 +2,24 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const CONFIG = require('./config');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
+
+// Security: Helmet for basic headers
+app.use(helmet({
+    contentSecurityPolicy: false, // Disabled for simplicity, enable in high-security prod
+}));
+
+// Security: Rate limiting to prevent abuse
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use('/api/', limiter);
 
 app.use(cors());
 app.use(express.json());
@@ -61,13 +75,22 @@ function processData(data) {
         targetContestIndices.forEach(idx => {
             const contest = contests[idx];
             const userResults = contest.users[user.id] || [];
-            const solvedCount = userResults.filter(p => p.verdict === 'OK').length;
+            
+            // Map individual problems to their status
+            const problemsStatus = contest.problems.map((prob, pIdx) => ({
+                id: prob.id,
+                short: prob.short,
+                solved: userResults[pIdx] ? userResults[pIdx].verdict === 'OK' : false
+            }));
+
+            const solvedCount = problemsStatus.filter(p => p.solved).length;
             
             solvedInTarget += solvedCount;
             contestDetails.push({
                 title: contest.title,
                 solved: solvedCount,
-                total: contest.problems.length
+                total: contest.problems.length,
+                problems: problemsStatus
             });
         });
 
