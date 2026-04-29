@@ -23,10 +23,12 @@ interface ContestListProps {
 const ContestList: React.FC<ContestListProps> = ({ contests }) => {
   const getProblemStatusText = (prob: Problem) => {
     if (prob.verdict === 'OK') {
-      return prob.penalty > 0 ? `+${prob.penalty}` : '+';
+      if (prob.penalty === 0) return '+';
+      return prob.penalty > 9 ? '+∞' : `+${prob.penalty}`;
     }
     if (prob.verdict === 'RJ' || (prob.verdict && prob.verdict !== 'null')) {
-      return `-${prob.penalty + 1}`;
+      const attempts = prob.penalty + 1;
+      return attempts > 9 ? '-∞' : `-${attempts}`;
     }
     return '';
   };
