@@ -8,6 +8,11 @@ interface UserData {
     title: string;
     solved: number;
     total: number;
+    problems: {
+      id: string;
+      short: string;
+      solved: boolean;
+    }[];
   }[];
 }
 
