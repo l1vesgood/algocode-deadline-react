@@ -5,6 +5,8 @@ interface Problem {
   id: string;
   short: string;
   solved: boolean;
+  verdict: string | null;
+  penalty: number;
 }
 
 interface Contest {
@@ -19,6 +21,22 @@ interface ContestListProps {
 }
 
 const ContestList: React.FC<ContestListProps> = ({ contests }) => {
+  const getProblemStatus = (prob: Problem) => {
+    if (prob.verdict === 'OK') {
+      return prob.penalty > 0 ? `+${prob.penalty}` : '+';
+    }
+    if (prob.verdict === 'RJ' || (prob.verdict && prob.verdict !== 'null')) {
+      return `-${prob.penalty + 1}`;
+    }
+    return prob.short;
+  };
+
+  const getProblemClass = (prob: Problem) => {
+    if (prob.verdict === 'OK') return 'solved';
+    if (prob.verdict === 'RJ' || (prob.verdict && prob.verdict !== 'null')) return 'rejected';
+    return '';
+  };
+
   return (
     <div className="card">
       <h3 style={{ marginBottom: '1.5rem' }}>Детали по контестам</h3>
@@ -46,10 +64,10 @@ const ContestList: React.FC<ContestListProps> = ({ contests }) => {
               {contest.problems.map((prob) => (
                 <div 
                   key={prob.id} 
-                  className={`problem-box ${prob.solved ? 'solved' : ''}`}
-                  title={`Задача ${prob.short}`}
+                  className={`problem-box ${getProblemClass(prob)}`}
+                  title={`Задача ${prob.short}${prob.verdict ? ` (${prob.verdict})` : ''}`}
                 >
-                  {prob.short}
+                  {getProblemStatus(prob)}
                 </div>
               ))}
             </div>

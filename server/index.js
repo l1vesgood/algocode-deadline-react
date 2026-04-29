@@ -84,11 +84,16 @@ function processData(data) {
             const userResults = contest.users[user.id] || [];
             
             // Map individual problems to their status
-            const problemsStatus = contest.problems.map((prob, pIdx) => ({
-                id: prob.id,
-                short: prob.short,
-                solved: userResults[pIdx] ? userResults[pIdx].verdict === 'OK' : false
-            }));
+            const problemsStatus = contest.problems.map((prob, pIdx) => {
+                const result = userResults[pIdx] || { verdict: null, penalty: 0 };
+                return {
+                    id: prob.id,
+                    short: prob.short,
+                    solved: result.verdict === 'OK',
+                    verdict: result.verdict,
+                    penalty: result.penalty || 0
+                };
+            });
 
             const solvedCount = problemsStatus.filter(p => p.solved).length;
             

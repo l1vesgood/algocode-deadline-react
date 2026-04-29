@@ -19,6 +19,8 @@ interface UserData {
       id: string;
       short: string;
       solved: boolean;
+      verdict: string | null;
+      penalty: number;
     }[];
   }[];
 }
