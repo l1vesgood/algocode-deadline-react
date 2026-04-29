@@ -1,0 +1,10 @@
+services:
+  app:
+    image: ghcr.io/l1vesgood/algocode-deadline-react:latest
+    container_name: algocode-tracker
+    ports:
+      - "5001:5001"
+    restart: unless-stopped
+    environment:
+      - PORT=5001
+      - NODE_ENV=production
