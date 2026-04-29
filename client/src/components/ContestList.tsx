@@ -21,14 +21,14 @@ interface ContestListProps {
 }
 
 const ContestList: React.FC<ContestListProps> = ({ contests }) => {
-  const getProblemStatus = (prob: Problem) => {
+  const getProblemStatusText = (prob: Problem) => {
     if (prob.verdict === 'OK') {
       return prob.penalty > 0 ? `+${prob.penalty}` : '+';
     }
     if (prob.verdict === 'RJ' || (prob.verdict && prob.verdict !== 'null')) {
       return `-${prob.penalty + 1}`;
     }
-    return prob.short;
+    return '';
   };
 
   const getProblemClass = (prob: Problem) => {
@@ -67,7 +67,12 @@ const ContestList: React.FC<ContestListProps> = ({ contests }) => {
                   className={`problem-box ${getProblemClass(prob)}`}
                   title={`Задача ${prob.short}${prob.verdict ? ` (${prob.verdict})` : ''}`}
                 >
-                  {getProblemStatus(prob)}
+                  <span className="problem-letter">{prob.short}</span>
+                  {prob.verdict && (
+                    <span className="problem-status-sub">
+                      {getProblemStatusText(prob)}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
