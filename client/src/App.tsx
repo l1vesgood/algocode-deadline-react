@@ -30,7 +30,7 @@ interface DeadlineData {
   contestsCount: number;
 }
 
-const API_URL = 'http://localhost:5001/api/deadline';
+const API_URL = '/api/deadline';
 
 function App() {
   const [data, setData] = useState<DeadlineData | null>(null);
