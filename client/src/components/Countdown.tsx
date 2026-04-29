@@ -36,22 +36,24 @@ const Countdown: React.FC<CountdownProps> = ({ deadline }) => {
   }, [deadline]);
 
   return (
-    <div className="countdown card">
-      <div className="countdown-item">
-        <span className="countdown-value">{timeLeft.days}</span>
-        <span className="countdown-label">Дней</span>
-      </div>
-      <div className="countdown-item">
-        <span className="countdown-value">{timeLeft.hours}</span>
-        <span className="countdown-label">Часов</span>
-      </div>
-      <div className="countdown-item">
-        <span className="countdown-value">{timeLeft.minutes}</span>
-        <span className="countdown-label">Минут</span>
-      </div>
-      <div className="countdown-item">
-        <span className="countdown-value">{timeLeft.seconds}</span>
-        <span className="countdown-label">Секунд</span>
+    <div className="card">
+      <div className="countdown">
+        <div className="countdown-item">
+          <span className="countdown-value">{timeLeft.days}</span>
+          <span className="countdown-label">Дней</span>
+        </div>
+        <div className="countdown-item">
+          <span className="countdown-value">{timeLeft.hours}</span>
+          <span className="countdown-label">Часов</span>
+        </div>
+        <div className="countdown-item">
+          <span className="countdown-value">{timeLeft.minutes}</span>
+          <span className="countdown-label">Минут</span>
+        </div>
+        <div className="countdown-item">
+          <span className="countdown-value">{timeLeft.seconds}</span>
+          <span className="countdown-label">Секунд</span>
+        </div>
       </div>
     </div>
   );
