@@ -75,6 +75,29 @@ function processData(data) {
         .filter(c => CONFIG.TARGET_CONTESTS.some(target => c.title.includes(target)))
         .map(c => c.index);
 
+    const totalUsers = users.length;
+
+    // Сначала посчитаем количество решений для каждой задачи в каждом контесте
+    const contestSolveStats = {}; // contestTitle -> { probId -> count }
+    
+    targetContestIndices.forEach(idx => {
+        const contest = contests[idx];
+        const stats = {};
+        
+        contest.problems.forEach((prob, pIdx) => {
+            let solvedCount = 0;
+            users.forEach(user => {
+                const results = contest.users[user.id] || [];
+                if (results[pIdx] && results[pIdx].verdict === 'OK') {
+                    solvedCount++;
+                }
+            });
+            stats[prob.id] = solvedCount;
+        });
+        
+        contestSolveStats[contest.title] = stats;
+    });
+
     const processedUsers = users.map(user => {
         let solvedInTarget = 0;
         const contestDetails = [];
@@ -86,12 +109,15 @@ function processData(data) {
             // Map individual problems to their status
             const problemsStatus = contest.problems.map((prob, pIdx) => {
                 const result = userResults[pIdx] || { verdict: null, penalty: 0 };
+                const isSolved = result.verdict === 'OK';
+                
                 return {
                     id: prob.id,
                     short: prob.short,
-                    solved: result.verdict === 'OK',
+                    solved: isSolved,
                     verdict: result.verdict,
-                    penalty: result.penalty || 0
+                    penalty: result.penalty || 0,
+                    globalSolvedCount: contestSolveStats[contest.title][prob.id]
                 };
             });
 
@@ -122,7 +148,8 @@ function processData(data) {
         deadlinePassedGif: CONFIG.DEADLINE_PASSED_GIF,
         requiredTasks: CONFIG.REQUIRED_TASKS,
         users: processedUsers,
-        contestsCount: targetContestIndices.length
+        contestsCount: targetContestIndices.length,
+        totalUsers
     };
 }
 

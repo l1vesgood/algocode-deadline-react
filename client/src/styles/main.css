@@ -163,6 +163,48 @@ body {
   background-color: var(--border-color);
   transition: all 0.2s;
   line-height: 1.1;
+  position: relative; /* Added for tooltip */
+}
+
+.problem-tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+  background-color: #1e293b;
+  color: white;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  z-index: 100;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-color);
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.problem-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: var(--border-color) transparent transparent transparent;
+}
+
+.problem-box:hover {
+  z-index: 10;
+}
+
+.problem-box:hover .problem-tooltip {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 .problem-letter {
@@ -173,7 +215,8 @@ body {
 }
 
 .problem-box.solved .problem-letter,
-.problem-box.rejected .problem-letter {
+.problem-box.rejected .problem-letter,
+.problem-box.pending .problem-letter {
   color: rgba(255, 255, 255, 0.7);
 }
 
@@ -193,6 +236,12 @@ body {
   background-color: var(--danger-color);
   color: white;
   box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+}
+
+.problem-box.pending {
+  background-color: var(--warning-color);
+  color: white;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
 }
 
 .contest-title {
@@ -367,6 +416,35 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 0;
+}
+
+.footer {
+  text-align: center;
+  margin-top: 4rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.github-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s;
+  background-color: var(--card-bg);
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  border: 1px solid var(--border-color);
+}
+
+.github-link:hover {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
 }
 
 @keyframes fadeIn {

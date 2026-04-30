@@ -14,6 +14,7 @@ interface UserData {
       solved: boolean;
       verdict: string | null;
       penalty: number;
+      globalSolvedCount: number;
     }[];
   }[];
 }

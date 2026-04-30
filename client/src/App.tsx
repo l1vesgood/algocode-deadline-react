@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { ExternalLink } from 'lucide-react';
 import Countdown from './components/Countdown';
 import UserSearch from './components/UserSearch';
 import ProgressCard from './components/ProgressCard';
@@ -21,6 +22,7 @@ interface UserData {
       solved: boolean;
       verdict: string | null;
       penalty: number;
+      globalSolvedCount: number;
     }[];
   }[];
 }
@@ -31,6 +33,7 @@ interface DeadlineData {
   requiredTasks: number;
   users: UserData[];
   contestsCount: number;
+  totalUsers: number;
 }
 
 const API_URL = '/api/deadline';
@@ -134,7 +137,10 @@ function App() {
             solved={selectedUser.solved}
             required={data.requiredTasks}
           />
-          <ContestList contests={selectedUser.details} />
+          <ContestList 
+            contests={selectedUser.details} 
+            totalUsers={data.totalUsers}
+          />
           <div style={{ height: '3rem' }} />
         </>
       )}
@@ -146,10 +152,20 @@ function App() {
         currentUser={selectedUser}
       />
 
-      <footer style={{ textAlign: 'center', marginTop: '4rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
-        Данные обновляются каждые 5 минут. Учитываются только задачи из целевых контестов ({data.contestsCount}).
+      <footer className="footer">
+        <p>Данные обновляются каждые 5 минут. Учитываются только задачи из целевых контестов ({data.contestsCount}).</p>
+        <a 
+          href="https://github.com/l1vesgood/algocode-deadline-react" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="github-link"
+        >
+          <ExternalLink size={16} />
+          <span>GitHub</span>
+        </a>
       </footer>
     </div>
-  );}
+  );
+}
 
 export default App;

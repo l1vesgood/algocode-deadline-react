@@ -7,6 +7,7 @@ interface Problem {
   solved: boolean;
   verdict: string | null;
   penalty: number;
+  globalSolvedCount: number;
 }
 
 interface Contest {
@@ -18,14 +19,16 @@ interface Contest {
 
 interface ContestListProps {
   contests: Contest[];
+  totalUsers: number;
 }
 
-const ContestList: React.FC<ContestListProps> = ({ contests }) => {
+const ContestList: React.FC<ContestListProps> = ({ contests, totalUsers }) => {
   const getProblemStatusText = (prob: Problem) => {
     if (prob.verdict === 'OK') {
       if (prob.penalty === 0) return '+';
       return prob.penalty > 9 ? '+∞' : `+${prob.penalty}`;
     }
+    if (prob.verdict === 'PR') return '?';
     if (prob.verdict === 'RJ' || (prob.verdict && prob.verdict !== 'null')) {
       const attempts = prob.penalty + 1;
       return attempts > 9 ? '-∞' : `-${attempts}`;
@@ -35,6 +38,7 @@ const ContestList: React.FC<ContestListProps> = ({ contests }) => {
 
   const getProblemClass = (prob: Problem) => {
     if (prob.verdict === 'OK') return 'solved';
+    if (prob.verdict === 'PR') return 'pending';
     if (prob.verdict === 'RJ' || (prob.verdict && prob.verdict !== 'null')) return 'rejected';
     return '';
   };
@@ -63,20 +67,29 @@ const ContestList: React.FC<ContestListProps> = ({ contests }) => {
             </div>
             
             <div className="problem-grid">
-              {contest.problems.map((prob) => (
-                <div 
-                  key={prob.id} 
-                  className={`problem-box ${getProblemClass(prob)}`}
-                  title={`Задача ${prob.short}${prob.verdict ? ` (${prob.verdict})` : ''}`}
-                >
-                  <span className="problem-letter">{prob.short}</span>
-                  {prob.verdict && (
-                    <span className="problem-status-sub">
-                      {getProblemStatusText(prob)}
-                    </span>
-                  )}
-                </div>
-              ))}
+              {contest.problems.map((prob) => {
+                const solvedCount = prob.globalSolvedCount || 0;
+                const percentage = totalUsers > 0 ? Math.round((solvedCount / totalUsers) * 100) : 0;
+                
+                return (
+                  <div 
+                    key={prob.id} 
+                    className={`problem-box ${getProblemClass(prob)}`}
+                  >
+                    <div className="problem-tooltip">
+                      <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Задача {prob.short}</div>
+                      {prob.verdict && <div style={{ marginBottom: '2px', opacity: 0.8 }}>Вердикт: {prob.verdict}</div>}
+                      <div style={{ color: 'var(--accent-color)' }}>Решило: {solvedCount} ({percentage}%)</div>
+                    </div>
+                    <span className="problem-letter">{prob.short}</span>
+                    {prob.verdict && (
+                      <span className="problem-status-sub">
+                        {getProblemStatusText(prob)}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}
