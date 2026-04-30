@@ -6,35 +6,9 @@ import UserSearch from './components/UserSearch';
 import ProgressCard from './components/ProgressCard';
 import ContestList from './components/ContestList';
 import StandingsTable from './components/StandingsTable';
+import SubmissionWall from './components/SubmissionWall';
+import type { DeadlineData, UserData } from './types';
 import './styles/main.css';
-
-interface UserData {
-  id: number;
-  name: string;
-  solved: number;
-  details: {
-    title: string;
-    solved: number;
-    total: number;
-    problems: {
-      id: string;
-      short: string;
-      solved: boolean;
-      verdict: string | null;
-      penalty: number;
-      globalSolvedCount: number;
-    }[];
-  }[];
-}
-
-interface DeadlineData {
-  deadline: string;
-  deadlinePassedGif: string;
-  requiredTasks: number;
-  users: UserData[];
-  contestsCount: number;
-  totalUsers: number;
-}
 
 const API_URL = '/api/deadline';
 
@@ -49,6 +23,8 @@ function App() {
     const fetchData = async () => {
       try {
         const response = await axios.get(API_URL);
+        console.log('API RESPONSE:', response.data);
+        console.log('SUBMISSIONS COUNT:', response.data.submissions?.length);
         setData(response.data);
         
         const savedUserId = localStorage.getItem('algocode_user_id');
@@ -119,38 +95,46 @@ function App() {
         </div>
       </header>
 
-      {isDeadlinePassed ? (
-        <div className="deadline-passed-container">
-          <img src={data.deadlinePassedGif} alt="Deadline passed" className="deadline-gif" />
-          <h2 className="deadline-passed-text">Дедлайн окончен!</h2>
-        </div>
-      ) : (
-        <Countdown deadline={data.deadline} />
-      )}
+      <div className="main-layout">
+        <main className="main-content">
+          {isDeadlinePassed ? (
+            <div className="deadline-passed-container">
+              <img src={data.deadlinePassedGif} alt="Deadline passed" className="deadline-gif" />
+              <h2 className="deadline-passed-text">Дедлайн окончен!</h2>
+            </div>
+          ) : (
+            <Countdown deadline={data.deadline} />
+          )}
 
-      <UserSearch value={searchTerm} onChange={handleSearch} />
+          <UserSearch value={searchTerm} onChange={handleSearch} />
 
-      {selectedUser && (
-        <>
-          <h2 style={{ marginBottom: '1rem' }}>{selectedUser.name}</h2>
-          <ProgressCard
-            solved={selectedUser.solved}
-            required={data.requiredTasks}
+          {selectedUser && (
+            <>
+              <h2 style={{ marginBottom: '1rem' }}>{selectedUser.name}</h2>
+              <ProgressCard
+                solved={selectedUser.solved}
+                required={data.requiredTasks}
+              />
+              <ContestList 
+                contests={selectedUser.details} 
+                totalUsers={data.totalUsers}
+              />
+              <div style={{ height: '3rem' }} />
+            </>
+          )}
+
+          <StandingsTable
+            users={data.users}
+            requiredTasks={data.requiredTasks}
+            onUserClick={handleUserSelect}
+            currentUser={selectedUser}
           />
-          <ContestList 
-            contests={selectedUser.details} 
-            totalUsers={data.totalUsers}
-          />
-          <div style={{ height: '3rem' }} />
-        </>
-      )}
+        </main>
 
-      <StandingsTable
-        users={data.users}
-        requiredTasks={data.requiredTasks}
-        onUserClick={handleUserSelect}
-        currentUser={selectedUser}
-      />
+        <aside className="sidebar">
+          <SubmissionWall submissions={data.submissions || []} />
+        </aside>
+      </div>
 
       <footer className="footer">
         <p>Данные обновляются каждые 5 минут. Учитываются только задачи из целевых контестов ({data.contestsCount}).</p>

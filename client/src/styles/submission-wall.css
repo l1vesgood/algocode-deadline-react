@@ -1,0 +1,154 @@
+.submission-list {
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 0.5rem;
+}
+
+.submission-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.submission-list::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 4px;
+}
+
+.submission-card-wrapper {
+  position: relative;
+  margin-bottom: 0.75rem;
+  z-index: 1;
+}
+
+.submission-card-wrapper:hover {
+  z-index: 1000;
+}
+
+.submission-card {
+  padding: 1rem;
+  background-color: rgba(255, 255, 255, 0.03);
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s;
+  cursor: help;
+}
+
+.submission-card-wrapper:hover .submission-card {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: var(--text-secondary);
+}
+
+/* Tooltip styles */
+.submission-card-wrapper .problem-tooltip {
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%) translateY(5px);
+  width: max-content;
+  max-width: 250px;
+  white-space: normal;
+  text-align: center;
+  z-index: 2000;
+  background-color: #1e293b;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  padding: 0.75rem 1rem;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+  position: absolute;
+}
+
+.submission-card-wrapper .problem-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #1e293b transparent transparent transparent;
+}
+
+.submission-card-wrapper:hover .problem-tooltip {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Для первых 3-х элементов тултип открывается СНИЗУ */
+.submission-card-wrapper:nth-child(-n+3) .problem-tooltip {
+  bottom: auto;
+  top: calc(100% + 8px);
+  transform: translateX(-50%) translateY(-5px);
+}
+
+.submission-card-wrapper:nth-child(-n+3) .problem-tooltip::after {
+  top: auto;
+  bottom: 100%;
+  border-color: transparent transparent #1e293b transparent;
+}
+
+.submission-card-wrapper:nth-child(-n+3):hover .problem-tooltip {
+  transform: translateX(-50%) translateY(0);
+}
+  top: calc(100% + 5px);
+  transform: translateX(-50%) translateY(-5px);
+}
+
+.submission-card-wrapper:nth-child(-n+3) .problem-tooltip::after {
+  top: auto;
+  bottom: 100%;
+  border-color: transparent transparent #1e293b transparent;
+}
+
+.submission-card-wrapper:nth-child(-n+3):hover .problem-tooltip {
+  transform: translateX(-50%) translateY(0);
+}
+
+
+
+
+
+.sub-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.sub-user {
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 170px;
+}
+
+.sub-time {
+  color: var(--text-secondary);
+}
+
+.sub-body {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.sub-verdict-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.verdict-ok { background-color: rgba(34, 197, 94, 0.25); }
+.verdict-ok svg { color: #4ade80 !important; }
+
+.verdict-danger { background-color: rgba(239, 68, 68, 0.25); }
+.verdict-danger svg { color: #f87171 !important; }
+

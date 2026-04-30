@@ -20,13 +20,224 @@ body {
   background-color: var(--bg-color);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 .container {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1rem;
 }
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .submission-wall {
+    order: 2;
+  }
+  
+  .main-content {
+    order: 1;
+  }
+}
+
+/* === Submission Wall Styles (Clean Rewrite) === */
+.submission-wall {
+  background-color: var(--card-bg);
+  border-radius: 1rem;
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  position: sticky;
+  top: 2rem;
+  max-height: calc(100vh - 4rem);
+  display: flex;
+  flex-direction: column;
+}
+
+.wall-title {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.submission-list {
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 0.5rem;
+}
+
+.submission-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.submission-list::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 4px;
+}
+
+.submission-card-wrapper {
+  position: relative;
+  margin-bottom: 0.8rem;
+  z-index: 1;
+}
+
+.submission-card-wrapper:hover {
+  z-index: 1000;
+}
+
+.submission-card {
+  padding: 1rem;
+  background-color: rgba(255, 255, 255, 0.03);
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+  cursor: help;
+}
+
+.submission-card-wrapper:hover .submission-card {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: var(--text-secondary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Tooltip Styling */
+.submission-card-wrapper .problem-tooltip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 10px);
+  transform: translateY(5px);
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  padding: 0.8rem 1rem;
+  border-radius: 0.6rem;
+  z-index: 2000;
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  text-align: center;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.submission-card-wrapper .problem-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #334155 transparent transparent transparent;
+}
+
+.submission-card-wrapper:hover .problem-tooltip {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Smart Flip for top items */
+.submission-card-wrapper:nth-child(-n+3) .problem-tooltip {
+  bottom: auto;
+  top: calc(100% + 10px);
+  transform: translateY(-5px);
+}
+
+.submission-card-wrapper:nth-child(-n+3) .problem-tooltip::after {
+  top: auto;
+  bottom: 100%;
+  border-color: transparent transparent #334155 transparent;
+}
+
+.submission-card-wrapper:nth-child(-n+3):hover .problem-tooltip {
+  transform: translateY(0);
+}
+
+/* Card Content Styles */
+.sub-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.sub-user {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.sub-time {
+  color: var(--text-secondary);
+}
+
+.sub-body {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.sub-verdict-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Bright Verdicts */
+.verdict-ok { background-color: rgba(34, 197, 94, 0.25); }
+.verdict-ok svg { color: #4ade80 !important; }
+
+.verdict-danger { background-color: rgba(239, 68, 68, 0.25); }
+.verdict-danger svg { color: #f87171 !important; }
+
+.verdict-warning { background-color: rgba(245, 158, 11, 0.25); }
+.verdict-warning svg { color: #fbbf24 !important; }
+
+.verdict-other { background-color: rgba(148, 163, 184, 0.2); }
+.verdict-other svg { color: #cbd5e1 !important; }
+
+.sub-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+}
+
+.sub-prob {
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+.sub-verdict-text {
+  font-size: 0.7rem;
+  font-weight: 800;
+  font-family: monospace;
+}
+
+
+
 
 .header {
   text-align: center;

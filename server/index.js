@@ -69,6 +69,12 @@ async function fetchAlgocodeData() {
 function processData(data) {
     const { contests, users } = data;
     
+    // Карта пользователей для быстрого поиска по ID
+    const userMap = {};
+    users.forEach(u => {
+        userMap[u.id] = u.name;
+    });
+
     // Индексы целевых контестов
     const targetContestIndices = contests
         .map((c, index) => ({ title: c.title, index }))
@@ -76,6 +82,7 @@ function processData(data) {
         .map(c => c.index);
 
     const totalUsers = users.length;
+    const submissions = [];
 
     // Сначала посчитаем количество решений для каждой задачи в каждом контесте
     const contestSolveStats = {}; // contestTitle -> { probId -> count }
@@ -84,12 +91,31 @@ function processData(data) {
         const contest = contests[idx];
         const stats = {};
         
+        // Базовое время начала контеста (предполагаем 18:00 MSK, если нет точного времени)
+        // Для относительного порядка внутри одного контеста это не критично
+        const startTime = new Date(contest.date + 'T18:00:00+03:00').getTime();
+
         contest.problems.forEach((prob, pIdx) => {
             let solvedCount = 0;
             users.forEach(user => {
                 const results = contest.users[user.id] || [];
-                if (results[pIdx] && results[pIdx].verdict === 'OK') {
-                    solvedCount++;
+                const result = results[pIdx];
+                
+                if (result && result.verdict) {
+                    // Добавляем в список всех посылок
+                    submissions.push({
+                        userName: user.name,
+                        contestTitle: contest.title,
+                        problemShort: prob.short,
+                        problemTitle: prob.long || prob.short,
+                        verdict: result.verdict,
+                        time: result.time,
+                        timestamp: startTime + (result.time * 1000)
+                    });
+
+                    if (result.verdict === 'OK') {
+                        solvedCount++;
+                    }
                 }
             });
             stats[prob.id] = solvedCount;
@@ -97,6 +123,11 @@ function processData(data) {
         
         contestSolveStats[contest.title] = stats;
     });
+
+    // Сортируем посылки по времени (последние сверху)
+    const latestSubmissions = submissions
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .slice(0, 50);
 
     const processedUsers = users.map(user => {
         let solvedInTarget = 0;
@@ -148,6 +179,7 @@ function processData(data) {
         deadlinePassedGif: CONFIG.DEADLINE_PASSED_GIF,
         requiredTasks: CONFIG.REQUIRED_TASKS,
         users: processedUsers,
+        submissions: latestSubmissions,
         contestsCount: targetContestIndices.length,
         totalUsers
     };
