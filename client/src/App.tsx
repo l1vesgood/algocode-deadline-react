@@ -27,6 +27,7 @@ interface UserData {
 
 interface DeadlineData {
   deadline: string;
+  deadlinePassedGif: string;
   requiredTasks: number;
   users: UserData[];
   contestsCount: number;
@@ -90,43 +91,65 @@ function App() {
   if (error) return <div className="error">{error}</div>;
   if (!data) return null;
 
+  const formatDate = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        hour: '2-digit',
+        minute: '2-digit',
+      }) + ' (МСК)';
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
+  const isDeadlinePassed = new Date(data.deadline).getTime() < new Date().getTime();
+
   return (
     <div className="container">
       <header className="header">
         <h1>Яндекс. Кружок</h1>
         <div className="deadline-info">
-          Дедлайн: 2 мая 23:59 (МСК) • {data.contestsCount} контестов
+          Дедлайн: {formatDate(data.deadline)} • {data.contestsCount} контестов
         </div>
       </header>
 
-      <Countdown deadline={data.deadline} />
+      {isDeadlinePassed ? (
+        <div className="deadline-passed-container">
+          <img src={data.deadlinePassedGif} alt="Deadline passed" className="deadline-gif" />
+          <h2 className="deadline-passed-text">Дедлайн окончен!</h2>
+        </div>
+      ) : (
+        <Countdown deadline={data.deadline} />
+      )}
 
       <UserSearch value={searchTerm} onChange={handleSearch} />
 
       {selectedUser && (
         <>
           <h2 style={{ marginBottom: '1rem' }}>{selectedUser.name}</h2>
-          <ProgressCard 
-            solved={selectedUser.solved} 
-            required={data.requiredTasks} 
+          <ProgressCard
+            solved={selectedUser.solved}
+            required={data.requiredTasks}
           />
           <ContestList contests={selectedUser.details} />
           <div style={{ height: '3rem' }} />
         </>
       )}
 
-      <StandingsTable 
-        users={data.users} 
-        requiredTasks={data.requiredTasks} 
+      <StandingsTable
+        users={data.users}
+        requiredTasks={data.requiredTasks}
         onUserClick={handleUserSelect}
         currentUser={selectedUser}
       />
-      
+
       <footer style={{ textAlign: 'center', marginTop: '4rem', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
-        Данные обновляются каждые 5 минут. Учитываются только задачи из первых 11 контестов.
+        Данные обновляются каждые 5 минут. Учитываются только задачи из целевых контестов ({data.contestsCount}).
       </footer>
     </div>
-  );
-}
+  );}
 
 export default App;

@@ -119,6 +119,7 @@ function processData(data) {
 
     return {
         deadline: CONFIG.DEADLINE_DATE,
+        deadlinePassedGif: CONFIG.DEADLINE_PASSED_GIF,
         requiredTasks: CONFIG.REQUIRED_TASKS,
         users: processedUsers,
         contestsCount: targetContestIndices.length
