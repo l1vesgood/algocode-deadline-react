@@ -19,7 +19,12 @@ const CONFIG = {
         "Куча мала"
     ],
     // Эндпоинт algocode
-    ALGOCODE_URL: process.env.ALGOCODE_URL || "https://algocode.ru/standings_data/c_spring_2025/"
+    ALGOCODE_URL: process.env.ALGOCODE_URL || "https://algocode.ru/standings_data/c_spring_2025/",
+    // Ejudge API settings
+    EJUDGE_API: {
+        TOKEN: process.env.EJUDGE_API_TOKEN || "", // Укажите API-ключ в переменных окружения
+        BASE_URL: "https://ejudge.algocode.ru/ej/api/v1"
+    }
 };
 
 module.exports = CONFIG;

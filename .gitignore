@@ -36,3 +36,5 @@ yarn-error.log*
 
 # Docker
 .dockerignore
+contest_start_times.json
+seen_submissions.json

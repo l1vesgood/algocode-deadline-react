@@ -1,13 +1,103 @@
+require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const fs = require('fs');
 const CONFIG = require('./config');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
+
+// Кэш для времени начала контестов
+const CONTEST_TIMES_FILE = path.join(__dirname, 'contest_start_times.json');
+let contestStartTimes = {};
+
+// Кэш для времени первого обнаружения посылок (для инференса)
+const SEEN_SUBMISSIONS_FILE = path.join(__dirname, 'seen_submissions.json');
+let seenSubmissions = {};
+
+if (fs.existsSync(CONTEST_TIMES_FILE)) {
+    try {
+        contestStartTimes = JSON.parse(fs.readFileSync(CONTEST_TIMES_FILE, 'utf8'));
+    } catch (e) {
+        console.error('Error loading contest_start_times.json:', e.message);
+    }
+}
+
+if (fs.existsSync(SEEN_SUBMISSIONS_FILE)) {
+    try {
+        seenSubmissions = JSON.parse(fs.readFileSync(SEEN_SUBMISSIONS_FILE, 'utf8'));
+    } catch (e) {
+        console.error('Error loading seen_submissions.json:', e.message);
+    }
+}
+
+function saveCache(file, data) {
+    try {
+        fs.writeFileSync(file, JSON.stringify(data, null, 2));
+    } catch (e) {
+        console.error(`Error saving ${file}:`, e.message);
+    }
+}
+
+async function resolveStartTime(contest, contestSubmissions) {
+    const ejudgeId = contest.ejudge_id;
+    if (!ejudgeId) return new Date(contest.date + 'T18:00:00+03:00').getTime();
+
+    // 1. Проверяем кэш
+    if (contestStartTimes[ejudgeId]) {
+        return contestStartTimes[ejudgeId];
+    }
+
+    // 2. Пытаемся инферить из времени обнаружения посылок (если есть хотя бы 3)
+    if (contestSubmissions && contestSubmissions.length >= 3) {
+        const estimates = contestSubmissions.map(s => s.discoveryTime - (s.relativeTime * 1000));
+        estimates.sort((a, b) => a - b);
+        const inferredStart = estimates[0]; // Самое раннее возможное время
+        
+        // Сохраняем только если это выглядит разумно (в пределах +-6 часов от 18:00)
+        const defaultStart = new Date(contest.date + 'T18:00:00+03:00').getTime();
+        if (Math.abs(inferredStart - defaultStart) < 6 * 60 * 60 * 1000) {
+            contestStartTimes[ejudgeId] = inferredStart;
+            saveCache(CONTEST_TIMES_FILE, contestStartTimes);
+            console.log(`Inferred start time for ${contest.title}: ${new Date(inferredStart).toISOString()}`);
+            return inferredStart;
+        }
+    }
+
+    // 3. Запрашиваем Ejudge API
+    if (CONFIG.EJUDGE_API.TOKEN) {
+        try {
+            console.log(`Fetching start time for contest ${ejudgeId} from Ejudge API...`);
+            const response = await axios.get(`${CONFIG.EJUDGE_API.BASE_URL}/client/contest-status-json`, {
+                params: { contest_id: ejudgeId },
+                headers: { 
+                    'Authorization': `Bearer AQAA${CONFIG.EJUDGE_API.TOKEN}`,
+                    'Accept': 'application/json'
+                },
+                timeout: 3000
+            });
+
+            if (response.data && response.data.ok && response.data.result.contest) {
+                const startTime = response.data.result.contest.start_time * 1000;
+                if (startTime > 0) {
+                    contestStartTimes[ejudgeId] = startTime;
+                    saveCache(CONTEST_TIMES_FILE, contestStartTimes);
+                    console.log(`Resolved start time for ${contest.title} from API: ${new Date(startTime).toISOString()}`);
+                    return startTime;
+                }
+            }
+        } catch (error) {
+            console.error(`Failed to fetch start time for contest ${ejudgeId}:`, error.message);
+        }
+    }
+
+    // 4. Fallback на 18:00
+    return new Date(contest.date + 'T18:00:00+03:00').getTime();
+}
 
 // Security: Helmet for basic headers
 app.use(helmet({
@@ -52,7 +142,7 @@ async function fetchAlgocodeData() {
         
         console.log(`Received data from Algocode, size: ${JSON.stringify(response.data).length} bytes`);
         const rawData = response.data;
-        const processedData = processData(rawData);
+        const processedData = await processData(rawData);
         
         cache.data = processedData;
         cache.lastFetched = now;
@@ -66,7 +156,7 @@ async function fetchAlgocodeData() {
     }
 }
 
-function processData(data) {
+async function processData(data) {
     const { contests, users } = data;
     
     // Карта пользователей для быстрого поиска по ID
@@ -86,23 +176,56 @@ function processData(data) {
 
     // Сначала посчитаем количество решений для каждой задачи в каждом контесте
     const contestSolveStats = {}; // contestTitle -> { probId -> count }
+    let needsSave = false;
+    const now = Date.now();
     
-    targetContestIndices.forEach(idx => {
+    for (const idx of targetContestIndices) {
         const contest = contests[idx];
         const stats = {};
-        
-        // Базовое время начала контеста (предполагаем 18:00 MSK, если нет точного времени)
-        // Для относительного порядка внутри одного контеста это не критично
-        const startTime = new Date(contest.date + 'T18:00:00+03:00').getTime();
+        const contestSubmissions = [];
 
+        // Собираем данные о посылках для этого контеста
         contest.problems.forEach((prob, pIdx) => {
-            let solvedCount = 0;
             users.forEach(user => {
                 const results = contest.users[user.id] || [];
                 const result = results[pIdx];
                 
                 if (result && result.verdict) {
-                    // Добавляем в список всех посылок
+                    const subKey = `${user.id}-${contest.ejudge_id}-${prob.id}-${result.time}`;
+                    
+                    // Если мы видим эту посылку впервые - запоминаем время
+                    if (!seenSubmissions[subKey]) {
+                        // Для старых контестов (прошлые дни) не имеет смысла ставить Date.now()
+                        // Ставим Date.now() только если контест был недавно (в пределах 24ч)
+                        const contestDate = new Date(contest.date).getTime();
+                        const isRecent = Math.abs(now - contestDate) < 24 * 60 * 60 * 1000;
+                        
+                        seenSubmissions[subKey] = isRecent ? now : (new Date(contest.date + 'T18:00:00+03:00').getTime() + result.time * 1000);
+                        needsSave = true;
+                    }
+
+                    contestSubmissions.push({
+                        userName: user.name,
+                        probShort: prob.short,
+                        probTitle: prob.long || prob.short,
+                        verdict: result.verdict,
+                        relativeTime: result.time,
+                        discoveryTime: seenSubmissions[subKey]
+                    });
+                }
+            });
+        });
+
+        // Получаем точное время начала контеста (используя API или инференс)
+        const startTime = await resolveStartTime(contest, contestSubmissions);
+
+        // Формируем итоговые посылки и статсы
+        contest.problems.forEach((prob, pIdx) => {
+            let solvedCount = 0;
+            users.forEach(user => {
+                const results = contest.users[user.id] || [];
+                const result = results[pIdx];
+                if (result && result.verdict) {
                     submissions.push({
                         userName: user.name,
                         contestTitle: contest.title,
@@ -112,17 +235,16 @@ function processData(data) {
                         time: result.time,
                         timestamp: startTime + (result.time * 1000)
                     });
-
-                    if (result.verdict === 'OK') {
-                        solvedCount++;
-                    }
+                    if (result.verdict === 'OK') solvedCount++;
                 }
             });
             stats[prob.id] = solvedCount;
         });
         
         contestSolveStats[contest.title] = stats;
-    });
+    }
+
+    if (needsSave) saveCache(SEEN_SUBMISSIONS_FILE, seenSubmissions);
 
     // Сортируем посылки по времени (последние сверху)
     const latestSubmissions = submissions
