@@ -52,23 +52,7 @@ async function resolveStartTime(contest, contestSubmissions) {
         return contestStartTimes[ejudgeId];
     }
 
-    // 2. Пытаемся инферить из времени обнаружения посылок (если есть хотя бы 3)
-    if (contestSubmissions && contestSubmissions.length >= 3) {
-        const estimates = contestSubmissions.map(s => s.discoveryTime - (s.relativeTime * 1000));
-        estimates.sort((a, b) => a - b);
-        const inferredStart = estimates[0]; // Самое раннее возможное время
-        
-        // Сохраняем только если это выглядит разумно (в пределах +-6 часов от 18:00)
-        const defaultStart = new Date(contest.date + 'T18:00:00+03:00').getTime();
-        if (Math.abs(inferredStart - defaultStart) < 6 * 60 * 60 * 1000) {
-            contestStartTimes[ejudgeId] = inferredStart;
-            saveCache(CONTEST_TIMES_FILE, contestStartTimes);
-            console.log(`Inferred start time for ${contest.title}: ${new Date(inferredStart).toISOString()}`);
-            return inferredStart;
-        }
-    }
-
-    // 3. Запрашиваем Ejudge API
+    // 2. Запрашиваем Ejudge API (Самый точный источник)
     if (CONFIG.EJUDGE_API.TOKEN) {
         try {
             console.log(`Fetching start time for contest ${ejudgeId} from Ejudge API...`);
@@ -92,6 +76,21 @@ async function resolveStartTime(contest, contestSubmissions) {
             }
         } catch (error) {
             console.error(`Failed to fetch start time for contest ${ejudgeId}:`, error.message);
+        }
+    }
+
+    // 3. Пытаемся инферить из времени обнаружения посылок (fallback)
+    if (contestSubmissions && contestSubmissions.length >= 3) {
+        const estimates = contestSubmissions.map(s => s.discoveryTime - (s.relativeTime * 1000));
+        estimates.sort((a, b) => a - b);
+        const inferredStart = estimates[0];
+        
+        const defaultStart = new Date(contest.date + 'T18:00:00+03:00').getTime();
+        if (Math.abs(inferredStart - defaultStart) < 6 * 60 * 60 * 1000) {
+            contestStartTimes[ejudgeId] = inferredStart;
+            saveCache(CONTEST_TIMES_FILE, contestStartTimes);
+            console.log(`Inferred start time for ${contest.title}: ${new Date(inferredStart).toISOString()}`);
+            return inferredStart;
         }
     }
 
