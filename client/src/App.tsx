@@ -114,8 +114,6 @@ function App() {
               <ProgressCard
                 solved={selectedUser.solved}
                 required={data.requiredTasks}
-                algocodeSolved={selectedUser.algocodeSolved}
-                cfSolved={selectedUser.cfSolved}
               />
               <ContestList 
                 contests={selectedUser.details} 

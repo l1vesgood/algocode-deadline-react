@@ -1,5 +1,23 @@
 import React, { useState } from 'react';
-import type { UserData } from '../types';
+
+interface UserData {
+  id: number;
+  name: string;
+  solved: number;
+  details: {
+    title: string;
+    solved: number;
+    total: number;
+    problems: {
+      id: string;
+      short: string;
+      solved: boolean;
+      verdict: string | null;
+      penalty: number;
+      globalSolvedCount: number;
+    }[];
+  }[];
+}
 
 interface StandingsTableProps {
   users: UserData[];
@@ -49,14 +67,7 @@ const StandingsTable: React.FC<StandingsTableProps> = ({ users, requiredTasks, o
                 >
                   <td className="rank">{index + 1}</td>
                   <td className="name">{user.name}</td>
-                  <td className="solved-count">
-                    <span className="total-solved">{user.solved} / {requiredTasks}</span>
-                    {(user.cfSolved !== undefined && user.cfSolved > 0) && (
-                      <span className="cf-badge" title={`Codeforces: ${user.cfSolved}`}>
-                        +{user.cfSolved} CF
-                      </span>
-                    )}
-                  </td>
+                  <td className="solved-count">{user.solved} / {requiredTasks}</td>
                   <td className="progress-cell">
                     <div className="mini-progress-bg">
                       <div 

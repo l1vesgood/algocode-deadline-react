@@ -79,9 +79,7 @@ const ContestList: React.FC<ContestListProps> = ({ contests, totalUsers }) => {
                     <div className="problem-tooltip">
                       <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Задача {prob.short}</div>
                       {prob.verdict && <div style={{ marginBottom: '2px', opacity: 0.8 }}>Вердикт: {prob.verdict}</div>}
-                      {!contest.title.startsWith('CF:') && (
-                        <div style={{ color: 'var(--accent-color)' }}>Решило: {solvedCount} ({percentage}%)</div>
-                      )}
+                      <div style={{ color: 'var(--accent-color)' }}>Решило: {solvedCount} ({percentage}%)</div>
                     </div>
                     <span className="problem-letter">{prob.short}</span>
                     {prob.verdict && (

@@ -11,8 +11,6 @@ export interface UserData {
   id: number;
   name: string;
   solved: number;
-  algocodeSolved?: number;
-  cfSolved?: number;
   details: {
     title: string;
     solved: number;
