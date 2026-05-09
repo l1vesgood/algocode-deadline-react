@@ -3,9 +3,11 @@ import React from 'react';
 interface ProgressCardProps {
   solved: number;
   required: number;
+  algocodeSolved?: number;
+  cfSolved?: number;
 }
 
-const ProgressCard: React.FC<ProgressCardProps> = ({ solved, required }) => {
+const ProgressCard: React.FC<ProgressCardProps> = ({ solved, required, algocodeSolved, cfSolved }) => {
   const percentage = Math.min((solved / required) * 100, 100);
   
   const getProgressColor = () => {
@@ -22,6 +24,11 @@ const ProgressCard: React.FC<ProgressCardProps> = ({ solved, required }) => {
             {solved}
           </div>
           <div className="stat-label">Решено</div>
+          {(cfSolved !== undefined && cfSolved > 0) && (
+            <div className="stat-sublabel" style={{ fontSize: '0.75rem', opacity: 0.8 }}>
+              {algocodeSolved} + {cfSolved} CF
+            </div>
+          )}
         </div>
         <div className="stat-card">
           <div className="stat-value">{required}</div>

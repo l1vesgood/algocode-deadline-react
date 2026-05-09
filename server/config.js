@@ -20,6 +20,12 @@ const CONFIG = {
     ],
     // Эндпоинт algocode
     ALGOCODE_URL: process.env.ALGOCODE_URL || "https://algocode.ru/standings_data/c_spring_2025/",
+    // Google Spreadsheet with CF handles
+    SPREADSHEET_URL: process.env.SPREADSHEET_URL || "https://docs.google.com/spreadsheets/d/1Qw2e_X_qZK6IsSq24K6ShAt8WBDgQefKBWbZlfAqvnM/export?format=csv&gid=200345577",
+    // Codeforces settings
+    CF_CONTEST_IDS: process.env.CF_CONTEST_ID ? process.env.CF_CONTEST_ID.split(',').map(id => id.trim()) : ["675501"],
+    CF_API_KEY: process.env.CF_API_KEY || "",
+    CF_API_SECRET: process.env.CF_API_SECRET || "",
     // Ejudge API settings
     EJUDGE_API: {
         TOKEN: process.env.EJUDGE_API_TOKEN || "", // Укажите API-ключ в переменных окружения
