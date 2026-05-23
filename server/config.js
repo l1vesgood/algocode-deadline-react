@@ -18,6 +18,8 @@ const CONFIG = {
         "Демоническое программирование - 3",
         "Куча мала"
     ],
+    // Отключить стену активностей (уведомления)
+    DISABLE_ACTIVITY_WALL: process.env.DISABLE_ACTIVITY_WALL === 'true',
     // Эндпоинт algocode
     ALGOCODE_URL: process.env.ALGOCODE_URL || "https://algocode.ru/standings_data/c_spring_2025/",
     // Ejudge API settings

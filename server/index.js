@@ -165,9 +165,10 @@ async function processData(data) {
     });
 
     // Индексы целевых контестов
+    const isWildcard = CONFIG.TARGET_CONTESTS.includes('*');
     const targetContestIndices = contests
         .map((c, index) => ({ title: c.title, index }))
-        .filter(c => CONFIG.TARGET_CONTESTS.some(target => c.title.includes(target)))
+        .filter(c => isWildcard || CONFIG.TARGET_CONTESTS.some(target => c.title.includes(target)))
         .map(c => c.index);
 
     const totalUsers = users.length;
@@ -193,9 +194,8 @@ async function processData(data) {
                     const subKey = `${user.id}-${contest.ejudge_id}-${prob.id}-${result.time}`;
                     
                     // Если мы видим эту посылку впервые - запоминаем время
+                    // Это нужно для инференса времени начала контеста, если нет API токена
                     if (!seenSubmissions[subKey]) {
-                        // Для старых контестов (прошлые дни) не имеет смысла ставить Date.now()
-                        // Ставим Date.now() только если контест был недавно (в пределах 24ч)
                         const contestDate = new Date(contest.date).getTime();
                         const isRecent = Math.abs(now - contestDate) < 24 * 60 * 60 * 1000;
                         
@@ -203,14 +203,16 @@ async function processData(data) {
                         needsSave = true;
                     }
 
-                    contestSubmissions.push({
-                        userName: user.name,
-                        probShort: prob.short,
-                        probTitle: prob.long || prob.short,
-                        verdict: result.verdict,
-                        relativeTime: result.time,
-                        discoveryTime: seenSubmissions[subKey]
-                    });
+                    if (!CONFIG.DISABLE_ACTIVITY_WALL) {
+                        contestSubmissions.push({
+                            userName: user.name,
+                            probShort: prob.short,
+                            probTitle: prob.long || prob.short,
+                            verdict: result.verdict,
+                            relativeTime: result.time,
+                            discoveryTime: seenSubmissions[subKey]
+                        });
+                    }
                 }
             });
         });
@@ -225,15 +227,17 @@ async function processData(data) {
                 const results = contest.users[user.id] || [];
                 const result = results[pIdx];
                 if (result && result.verdict) {
-                    submissions.push({
-                        userName: user.name,
-                        contestTitle: contest.title,
-                        problemShort: prob.short,
-                        problemTitle: prob.long || prob.short,
-                        verdict: result.verdict,
-                        time: result.time,
-                        timestamp: startTime + (result.time * 1000)
-                    });
+                    if (!CONFIG.DISABLE_ACTIVITY_WALL) {
+                        submissions.push({
+                            userName: user.name,
+                            contestTitle: contest.title,
+                            problemShort: prob.short,
+                            problemTitle: prob.long || prob.short,
+                            verdict: result.verdict,
+                            time: result.time,
+                            timestamp: startTime + (result.time * 1000)
+                        });
+                    }
                     if (result.verdict === 'OK') solvedCount++;
                 }
             });
@@ -246,7 +250,7 @@ async function processData(data) {
     if (needsSave) saveCache(SEEN_SUBMISSIONS_FILE, seenSubmissions);
 
     // Сортируем посылки по времени (последние сверху)
-    const latestSubmissions = submissions
+    const latestSubmissions = CONFIG.DISABLE_ACTIVITY_WALL ? [] : submissions
         .sort((a, b) => b.timestamp - a.timestamp)
         .slice(0, 50);
 
